@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, jsonify
 from influxdb import InfluxDBClient
 
 # Flask application
@@ -50,6 +50,22 @@ def index():
     client.write_points(data)
 
     return f"Visitor count: {visitor_count}"
+
+@app.route('/readiness', methods=['GET'])
+def readiness():
+    return jsonify(message="OK"), 200
+
+@app.route('/noreadiness', methods=['GET'])
+def noreadiness():
+    return jsonify(message="NOT OK"), 418
+
+@app.route('/liveness', methods=['GET'])
+def liveness():
+    return jsonify(message="OK"), 200
+
+@app.route('/noliveness', methods=['GET'])
+def noliveness():
+    return jsonify(message="NOT OK"), 418
 
 if __name__ == '__main__':
     # Make Flask listen on all available IP addresses
