@@ -6,12 +6,10 @@ from influxdb import InfluxDBClient
 app = Flask(__name__)
 
 # InfluxDB configuration from environment variables
+influx_enabled = os.getenv("INFLUXDB_ENABLED", True)
 host = os.getenv("INFLUXDB_HOST", "localhost")
 port = int(os.getenv("INFLUXDB_PORT", 8086))
 database = os.getenv("INFLUXDB_DATABASE", "your_database")
-
-# Initialize InfluxDB client
-client = InfluxDBClient(host=host, port=port)
 
 # Function to create database if it doesn't exist
 def create_database_if_not_exists(db_name):
@@ -19,11 +17,14 @@ def create_database_if_not_exists(db_name):
     if not any(db['name'] == db_name for db in databases):
         client.create_database(db_name)
 
-# Ensure the database exists
-create_database_if_not_exists(database)
+if influx_enabled is True:
+    # Initialize InfluxDB client
+    client = InfluxDBClient(host=host, port=port)
+    # Ensure the database exists
+    create_database_if_not_exists(database)
 
-# Switch to the desired database
-client.switch_database(database)
+    # Switch to the desired database
+    client.switch_database(database)
 
 # Visitor counter
 visitor_count = 0
@@ -45,9 +46,9 @@ def index():
             }
         }
     ]
-
-    # Write data to InfluxDB
-    client.write_points(data)
+    if influx_enabled is True:
+        # Write data to InfluxDB
+        client.write_points(data)
 
     return f"Visitor count: {visitor_count}"
 
